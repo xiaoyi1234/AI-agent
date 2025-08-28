@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "howtocook-mcp": {
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "howtocook-mcp"
+      ]
+    }
+  }
+}

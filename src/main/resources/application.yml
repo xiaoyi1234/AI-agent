@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: Test1
+  profiles:
+    active: local
+  # 阿里云 PGVector配置
+#  datasource:
+#    url: jdbc:postgresql://rm-cn-zky4cbbv4000fafo.rwlb.rds.aliyuncs.com:5432/test_agent
+#    username: xiaoyi
+#    password: 18114853169zxY
+  ai:
+    dashscope:
+      api-key: sk-40c20d941b524614bc5b19d8c6803a63
+      chat:
+        options:
+          model: qwen-plus
+#    vectorstore:
+#      pgvector:
+#        index-type: HNSW
+#        distance-type: COSINE_DISTANCE
+#        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
+#    mcp:
+#      client:
+#        stdio:
+#          servers-configuration: classpath:mcp-servers.json
+
+#    mcp:
+#      client:
+#        enabled: true
+#        name: my-mcp-client
+#        version: 1.0.0
+#        request-timeout: 30s
+#        type: SYNC
+#        sse:
+#          connections:
+#            server1:
+#              url: http://localhost:8080
+#        stdio:
+#          connections:
+#            server1:
+#              command: /path/to/server
+#              args:
+#                - --port=8080
+#              env:
+#                API_KEY: your-api-key
+
+# searchApi
+search-api:
+  api-key: CdNMLaDcEDLcqHG6Mt5g7VDk
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+
+# springdoc-openapi ????
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.xiaoyi.test1.controller
+# knife4j???????????????
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+logging:
+  level:
+    com.xiaoyi.test1.Adviser.MylogAdvisor: info
+
