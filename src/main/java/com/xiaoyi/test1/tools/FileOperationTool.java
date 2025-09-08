@@ -2,6 +2,7 @@ package com.xiaoyi.test1.tools;
 
 import cn.hutool.core.io.FileUtil;
 import com.xiaoyi.test1.constant.FileConstant;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
@@ -18,6 +19,7 @@ public class FileOperationTool {
             return "Error reading file: " + e.getMessage();
         }
     }
+
 
     @Tool(description = "Write content to a file")
     public String writeFile(

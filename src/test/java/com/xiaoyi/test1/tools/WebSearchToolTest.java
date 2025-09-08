@@ -15,7 +15,7 @@ public class WebSearchToolTest {
     @Test
     public void testSearchWeb() {
         WebSearchTool tool = new WebSearchTool(searchApiKey);
-        String query = "程序员鱼皮编程导航 codefather.cn";
+        String query = "中国美食";
         String result = tool.searchWeb(query);
         assertNotNull(result);
     }

@@ -83,5 +83,12 @@ class LoveAppTest {
 //        Assertions.assertNotNull(answer);
 //    }
 
+//    @Test
+//    void doImage(){
+//        String message = "为人工智能生成一张富有科技感的图片！";
+//        String answer = loveApp.doImage(message);
+//        Assertions.assertNotNull(answer);
+//    }
+
 
 }

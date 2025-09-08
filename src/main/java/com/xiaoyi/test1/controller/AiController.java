@@ -88,12 +88,6 @@ public class AiController {
                     } catch (IOException e) {
                         sseEmitter.completeWithError(e);
                     }
-//                    try {
-//                        aiMsg.add(chunk);
-//                    } catch (Exception e) {
-//                        sseEmitter.completeWithError(e);
-//                    }
-
                 }, sseEmitter::completeWithError, sseEmitter::complete);
         // 返回
         return sseEmitter;

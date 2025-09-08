@@ -1,6 +1,13 @@
 package com.xiaoyi.test1.Adviser;
 
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.ai.chat.client.ChatClientRequest;
+import org.springframework.ai.chat.client.ChatClientResponse;
+
 import org.springframework.ai.chat.client.advisor.api.*;
+import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
@@ -10,32 +17,31 @@ import java.util.Map;
  * 自定义 Re2 Advisor
  * 可提高大型语言模型的推理能力
  */
-public class ReReadingAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
+@Slf4j
+public class ReReadingAdvisor implements CallAdvisor, StreamAdvisor {
 
 
-    private AdvisedRequest before(AdvisedRequest advisedRequest) {
+    private ChatClientRequest before(ChatClientRequest chatClientRequest) {
 
-        //Map<String, Object> advisedUserParams = new HashMap<>(advisedRequest.userParams());
-        //advisedUserParams.put("re2_input_query", advisedRequest.userText());
 
-        advisedRequest.userParams().put("re2_input_query", advisedRequest.userText());
-        return AdvisedRequest.from(advisedRequest)
-                .userText("""
-                        {re2_input_query}
-                        Read the question again: {re2_input_query}
-                        """)
-                .userParams(advisedRequest.userParams())
-                .build();
+        String userText = chatClientRequest.prompt().getUserMessage().getText();
+        chatClientRequest.context().put("re2_input_query", userText);
+        String newUserText = """
+                %s
+                Read the question again: %s
+                """.formatted(userText, userText);
+        Prompt newPrompt = chatClientRequest.prompt().augmentUserMessage(newUserText);
+        return new ChatClientRequest(newPrompt, chatClientRequest.context());
     }
 
     @Override
-    public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
-        return chain.nextAroundCall(this.before(advisedRequest));
+    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain chain) {
+        return chain.nextCall(this.before(chatClientRequest));
     }
 
     @Override
-    public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
-        return chain.nextAroundStream(this.before(advisedRequest));
+    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain chain) {
+        return chain.nextStream(this.before(chatClientRequest));
     }
 
     @Override

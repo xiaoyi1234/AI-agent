@@ -11,9 +11,21 @@ spring:
   ai:
     dashscope:
       api-key: sk-40c20d941b524614bc5b19d8c6803a63
+      base-url: https://dashscope.aliyuncs.com
       chat:
         options:
           model: qwen-plus
+
+      image:
+        options:
+          model: qwen-image
+          height: 1024
+          width: 1024
+          n: 1
+          style: natural
+
+
+
 #    vectorstore:
 #      pgvector:
 #        index-type: HNSW

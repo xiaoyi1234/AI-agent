@@ -39,8 +39,6 @@ public abstract class BaseAgent {
     // Memory 记忆（需要自主维护会话上下文）
     private List<Message> messageList = new ArrayList<>();
 
-    // 创建一个超时时间较长的 SseEmitter
-    public SseEmitter sseEmitter = new SseEmitter(300000L); // 5 分钟超时
 
     public String run(String userPrompt)
     {
@@ -176,6 +174,7 @@ public abstract class BaseAgent {
             log.info("SSE connection completed");
         });
         return sseEmitter;
+
     }
 
     /**

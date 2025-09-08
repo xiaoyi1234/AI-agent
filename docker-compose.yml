@@ -1,0 +1,15 @@
+# docker-compose.yml
+
+services:
+  searxng:
+    container_name: searxng
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - "6080:8080"  # 宿主机端口:容器端口
+    volumes:
+      - ./searxng:/etc/searxng:rw  # 配置目录挂载
+    environment:
+      - BASE_URL=http://localhost:6080/
+      - INSTANCE_NAME=SpringAISearXNG
+      - SEARXNG_BAIDU_COOKIE_ENABLED=true

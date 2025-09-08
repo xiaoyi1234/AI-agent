@@ -32,7 +32,7 @@ public abstract class ReActAgent extends BaseAgent {
             boolean shouldact = think();
             if (!shouldact)
             {
-                return "思考完成 - 无需行动";
+                return "思考完成 - 无需行动\n";
             }
             // 行动
             return act();

@@ -2,18 +2,16 @@ package com.xiaoyi.test1.Adviser;
 
 import java.util.function.Function;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
+import org.springframework.ai.chat.client.ChatClientMessageAggregator;
+import org.springframework.ai.chat.client.ChatClientRequest;
+import org.springframework.ai.chat.client.ChatClientResponse;
 
-import org.springframework.ai.chat.client.advisor.api.AdvisedRequest;
-import org.springframework.ai.chat.client.advisor.api.AdvisedResponse;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisorChain;
-import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisorChain;
+import org.springframework.ai.chat.client.advisor.api.*;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.model.MessageAggregator;
+import reactor.core.publisher.Flux;
 import org.springframework.ai.model.ModelOptionsUtils;
 
 /**
@@ -21,18 +19,18 @@ import org.springframework.ai.model.ModelOptionsUtils;
  *
  * @author Christian Tzolov
  */
-public class MylogAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
+@Slf4j
+public class MylogAdvisor implements CallAdvisor, StreamAdvisor {
 
-    public static final Function<AdvisedRequest, String> DEFAULT_REQUEST_TO_STRING = request -> request.toString();
-
-    public static final Function<ChatResponse, String> DEFAULT_RESPONSE_TO_STRING = response -> ModelOptionsUtils
-            .toJsonStringPrettyPrinter(response);
+    public static final Function<ChatClientRequest, String> DEFAULT_REQUEST_TO_STRING = ChatClientRequest::toString;
+    public static final Function<ChatResponse, String> DEFAULT_RESPONSE_TO_STRING = ModelOptionsUtils::toJsonStringPrettyPrinter;
 
     private static final Logger logger = LoggerFactory.getLogger(MylogAdvisor.class);
 
-    private final Function<AdvisedRequest, String> requestToString;
+    private final Function<ChatClientRequest, String> requestToString;
 
     private final Function<ChatResponse, String> responseToString;
+    private final int order;
 
 
     public MylogAdvisor() {
@@ -40,29 +38,30 @@ public class MylogAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
     }
 
 
-    public MylogAdvisor(Function<AdvisedRequest, String> requestToString,
+    public MylogAdvisor(Function<ChatClientRequest, String> requestToString,
                         Function<ChatResponse, String> responseToString, int order) {
         this.requestToString = requestToString;
         this.responseToString = responseToString;
+        this.order = order;
     }
 
     @Override
     public String getName() {
-        return "xiaoyi123";
+        return this.getClass().getSimpleName();
     }
 
     @Override
     public int getOrder() {
-        return 100;
+        return 0;
     }
 
-    private AdvisedRequest before(AdvisedRequest request) {
-        logger.debug("request: {}", this.requestToString.apply(request));
+    private ChatClientRequest before(ChatClientRequest request) {
+        logger.debug("request: {}", request.prompt());
         return request;
     }
 
-    private void observeAfter(AdvisedResponse advisedResponse) {
-        logger.debug("response: {}", this.responseToString.apply(advisedResponse.response()));
+    private void observeAfter(ChatClientResponse chatClientResponse) {
+        logger.debug("response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
     }
 
     public String toString() {
@@ -70,25 +69,25 @@ public class MylogAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
     }
 
     @Override
-    public AdvisedResponse aroundCall(AdvisedRequest advisedRequest, CallAroundAdvisorChain chain) {
+    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain chain) {
 
-        advisedRequest = before(advisedRequest);
+        chatClientRequest = before(chatClientRequest);
 
-        AdvisedResponse advisedResponse = chain.nextAroundCall(advisedRequest);
+        ChatClientResponse chatClientResponse = chain.nextCall(chatClientRequest);
 
-        observeAfter(advisedResponse);
+        observeAfter(chatClientResponse);
 
-        return advisedResponse;
+        return chatClientResponse;
     }
 
     @Override
-    public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
+    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain chain) {
 
-        advisedRequest = before(advisedRequest);
+        chatClientRequest = before(chatClientRequest);
 
-        Flux<AdvisedResponse> advisedResponses = chain.nextAroundStream(advisedRequest);
+        Flux<ChatClientResponse> chatClientResponses = chain.nextStream(chatClientRequest);
 
-        return new MessageAggregator().aggregateAdvisedResponse(advisedResponses, this::observeAfter);
+        return (new ChatClientMessageAggregator()).aggregateChatClientResponse(chatClientResponses, this::observeAfter);
     }
 
 }

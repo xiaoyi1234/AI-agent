@@ -1,30 +1,29 @@
 package com.xiaoyi.test1.App;
 
 import com.xiaoyi.test1.Adviser.MylogAdvisor;
-import com.xiaoyi.test1.rag.LoveAppRagCloudAdvisorConfig;
-import com.xiaoyi.test1.rag.LoveAppRagCustomAdvisorFactory;
-import com.xiaoyi.test1.rag.QueryRewriter;
 import jakarta.annotation.Resource;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
-import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.InMemoryChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
-import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
 
 
 @Component
@@ -32,32 +31,43 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 public class LoveApp {
 
     private final ChatClient chatClient;
+    //private final ChatClient imageClient;
 
 
     private static final String SYSTEM_PROMPT = "扮演资深程序员";
+    @Autowired
+    private StringHttpMessageConverter stringHttpMessageConverter;
 
-    public LoveApp(ChatModel dashscopeChatModel) {
+    public LoveApp(ChatModel dashscopeChatModel, ChatModel dashScopeImageModel) {
         // 初始化基于内存的对话记忆
 
 //        String FileDir = System.getProperty("user.dir")+"/chat-memory";
 //        ChatMemory chatMemory = new FileBasedChatMemory(FileDir);
-        ChatMemory chatMemory = new InMemoryChatMemory();
+        MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .maxMessages(10)
+                .build();
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
-                        new MylogAdvisor()
+                        new MylogAdvisor(),
+                        MessageChatMemoryAdvisor.builder(chatMemory).build()
                         //new ReReadingAdvisor()
                 )
                 .build();
+
+
+//        imageClient = ChatClient.builder(dashScopeImageModel)
+//                .defaultSystem("You are an image generator.")
+//                .build();
+
     }
 
     public String doChat(String message, String chatId) {
         ChatResponse response = chatClient
                 .prompt()
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 3))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .call()
                 .chatResponse();
         String content = null;
@@ -68,11 +78,13 @@ public class LoveApp {
         return content;
     }
 
+    @Resource
+    private ToolCallback[] allTools;
     public Flux<String> doChatByStream(String message, String chatId){
         return  chatClient.prompt()
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 3))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                .toolCallbacks(allTools)
                 .stream()
                 .content();
 
@@ -85,8 +97,7 @@ public class LoveApp {
                 .prompt()
                 .system(SYSTEM_PROMPT+"每次对话后都要生成咨询结果，标题为{用户名}的报告，内容为建议的列表")
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 3))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .call()
                 .entity(LoveReport.class);
 
@@ -113,14 +124,13 @@ public class LoveApp {
         ChatResponse response = chatClient
                 .prompt()
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 3))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 开启日志，便于观察效果
                 .advisors(new MylogAdvisor())
                 // 应用自定义的 RAG 检索增强服务（文档查询器 + 上下文增强器）??
                 //.advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(loveAppVectorStore,"pcie-gen5.md"))
                 // 应用 RAG 知识库问答
-                .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
+                .advisors(QuestionAnswerAdvisor.builder(loveAppVectorStore).build())
                 // 应用 RAG 检索增强服务（基于 PgVector 向量存储）
 //                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
                 // 应用增强检索服务（云知识库服务）
@@ -134,18 +144,15 @@ public class LoveApp {
         return content;
     }
 
-    @Resource
-    private ToolCallback[] allTools;
 
     public String doChatWithTools(String message, String chatId) {
         ChatResponse response = chatClient
                 .prompt()
                 .user(message)
-                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 开启日志，便于观察效果
                 .advisors(new MylogAdvisor())
-                .tools(allTools)
+                .toolCallbacks(allTools)
                 .call()
                 .chatResponse();
         String content = response.getResult().getOutput().getText();
@@ -153,24 +160,33 @@ public class LoveApp {
         return content;
     }
 
-//    @Resource
-//    private ToolCallbackProvider toolCallbackProvider;
+    @Resource
+    private ToolCallbackProvider toolCallbackProvider;
+
+    public String doChatWithMcp(String message, String chatId) {
+        ChatResponse response = chatClient
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                // 开启日志，便于观察效果
+                .advisors(new MylogAdvisor())
+                .toolCallbacks(toolCallbackProvider)
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+//    public String  doImage(String message) {
+//        ImageResponse response = imageClient.prompt()
+//                .call(new ImagePrompt(message));
 //
-//    public String doChatWithMcp(String message, String chatId) {
-//        ChatResponse response = chatClient
-//                .prompt()
-//                .user(message)
-//                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
-//                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
-//                // 开启日志，便于观察效果
-//                .advisors(new MylogAdvisor())
-//                .tools(toolCallbackProvider)
-//                .call()
-//                .chatResponse();
-//        String content = response.getResult().getOutput().getText();
-//        log.info("content: {}", content);
-//        return content;
+//        String url = response.getResult().getOutput().toString();
+//        return url;
 //    }
+
+
 
 }
 
