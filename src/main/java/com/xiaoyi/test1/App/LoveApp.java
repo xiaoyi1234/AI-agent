@@ -1,5 +1,12 @@
 package com.xiaoyi.test1.App;
 
+import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversation;
+import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationParam;
+import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationResult;
+import com.alibaba.dashscope.common.MultiModalMessage;
+import com.alibaba.dashscope.common.Role;
+import com.alibaba.dashscope.exception.NoApiKeyException;
+import com.alibaba.dashscope.exception.UploadFileException;
 import com.xiaoyi.test1.Adviser.MylogAdvisor;
 import jakarta.annotation.Resource;
 
@@ -12,18 +19,21 @@ import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.image.*;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
+import java.util.*;
 
+import static java.lang.Thread.sleep;
 
 
 @Component
@@ -31,14 +41,12 @@ import java.util.List;
 public class LoveApp {
 
     private final ChatClient chatClient;
-    //private final ChatClient imageClient;
-
+    private final ImageModel imageModel;
 
     private static final String SYSTEM_PROMPT = "扮演资深程序员";
-    @Autowired
-    private StringHttpMessageConverter stringHttpMessageConverter;
 
-    public LoveApp(ChatModel dashscopeChatModel, ChatModel dashScopeImageModel) {
+    public LoveApp(ChatModel dashscopeChatModel,  ImageModel dashScopeImageModel) {
+        this.imageModel = dashScopeImageModel;
         // 初始化基于内存的对话记忆
 
 //        String FileDir = System.getProperty("user.dir")+"/chat-memory";
@@ -55,11 +63,6 @@ public class LoveApp {
                         //new ReReadingAdvisor()
                 )
                 .build();
-
-
-//        imageClient = ChatClient.builder(dashScopeImageModel)
-//                .defaultSystem("You are an image generator.")
-//                .build();
 
     }
 
@@ -178,14 +181,33 @@ public class LoveApp {
         return content;
     }
 
-//    public String  doImage(String message) {
-//        ImageResponse response = imageClient.prompt()
-//                .call(new ImagePrompt(message));
-//
-//        String url = response.getResult().getOutput().toString();
-//        return url;
-//    }
+    public final String apiKey = System.getenv("DASHSCOPE_API_KEY");
+    public String  doImage(String message) throws InterruptedException, NoApiKeyException, UploadFileException {
 
+        MultiModalConversation conv = new MultiModalConversation();
+
+        MultiModalMessage userMessage = MultiModalMessage.builder().role(Role.USER.getValue())
+                .content(Arrays.asList(
+                        Collections.singletonMap("text", message)
+                )).build();
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("watermark", true);
+        parameters.put("prompt_extend", true);
+        parameters.put("negative_prompt", "");
+        parameters.put("size", "1328*1328");
+
+        MultiModalConversationParam param = MultiModalConversationParam.builder()
+                .apiKey(apiKey)
+                .model("qwen-image")
+                .messages(Collections.singletonList(userMessage))
+                .parameters(parameters)
+                .build();
+
+        MultiModalConversationResult result = conv.call(param);
+
+        return result.getOutput().getChoices().getFirst().getMessage().getContent().getFirst().get("image").toString();
+
+    }
 
 
 }

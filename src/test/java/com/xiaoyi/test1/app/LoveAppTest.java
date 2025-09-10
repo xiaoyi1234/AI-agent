@@ -1,6 +1,8 @@
 package com.xiaoyi.test1.app;
 
 import cn.hutool.core.lang.UUID;
+import com.alibaba.dashscope.exception.NoApiKeyException;
+import com.alibaba.dashscope.exception.UploadFileException;
 import com.xiaoyi.test1.App.LoveApp;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
@@ -83,12 +85,13 @@ class LoveAppTest {
 //        Assertions.assertNotNull(answer);
 //    }
 
-//    @Test
-//    void doImage(){
-//        String message = "为人工智能生成一张富有科技感的图片！";
-//        String answer = loveApp.doImage(message);
-//        Assertions.assertNotNull(answer);
-//    }
+    @Test
+    void doImage() throws InterruptedException, NoApiKeyException, UploadFileException {
+        String message = "生成一张无敌风火轮的图片！";
+        String answer;
+        answer = loveApp.doImage(message);
+        Assertions.assertNotNull(answer);
+    }
 
 
 }
