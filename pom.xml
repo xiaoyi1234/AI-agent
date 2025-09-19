@@ -202,20 +202,27 @@
             <artifactId>spring-ai-advisors-vector-store</artifactId>
         </dependency>
 
-        <!-- Spring AI Alibaba核心依赖 -->
+<!--&lt;!&ndash;        spring ai nacos&ndash;&gt;-->
+<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;            <groupId>com.alibaba.cloud</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;            <version>2025.0.0.0-preview</version>&ndash;&gt;-->
+<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.alibaba.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>-->
+<!--            <version>2025.0.0.0-preview</version>-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>com.alibaba.cloud.ai</groupId>-->
-<!--            <artifactId>spring-ai-alibaba-starter</artifactId>-->
-<!--            <version>1.0.0-M6.1</version>-->
+<!--            <artifactId>spring-ai-alibaba-starter-nacos-prompt</artifactId>-->
+<!--            <version>1.0.0.3</version>-->
 <!--        </dependency>-->
-
-<!--        &lt;!&ndash; 阿里云核心 SDK &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.aliyun</groupId>-->
-<!--            <artifactId>aliyun-java-sdk-core</artifactId>-->
-<!--            <version>4.7.6</version> &lt;!&ndash; 推荐使用最新稳定版 &ndash;&gt;-->
-<!--        </dependency>-->
-
+        <dependency>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+            <version>3.0.3</version>
+        </dependency>
 
     </dependencies>
 
@@ -249,6 +256,10 @@
     </build>
 
     <repositories>
+        <repository>
+            <id>alibaba</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
         <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>

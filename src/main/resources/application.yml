@@ -22,6 +22,24 @@ spring:
           width: 512
           n: 1
           style: natural
+    # 开启 nacos 的 prompt tmpl 监听功能
+#    nacos:
+#      prompt:
+#        template:
+#          enabled: true
+
+#  config:
+#    import:
+#      - nacos:nacos-config-example.properties
+#  # 指定监听的 prompt 配置
+#  cloud:
+#    nacos:
+#      config:
+#        server-addr: 127.0.0.1:8080
+#        namespace: xiaoyi-test
+
+
+
 
 
 #    vectorstore:
@@ -59,10 +77,9 @@ search-api:
   api-key: CdNMLaDcEDLcqHG6Mt5g7VDk
 
 server:
-  port: 8080
+  port: 18080
   servlet:
     context-path: /api
-
 
 # springdoc-openapi ????
 springdoc:
@@ -85,4 +102,5 @@ knife4j:
 logging:
   level:
     com.xiaoyi.test1.Adviser.MylogAdvisor: info
+    com.alibaba.nacos: debug
 

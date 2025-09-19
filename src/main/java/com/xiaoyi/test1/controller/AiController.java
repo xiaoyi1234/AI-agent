@@ -104,4 +104,16 @@ public class AiController {
         XiaoyiMaus xiaoyiMaus = new XiaoyiMaus(allTools, dashscopeChatModel);
         return xiaoyiMaus.runStream(message);
     }
+
+    /**
+     * 带监听器的nacos配置获取
+     * @return
+     */
+    @GetMapping("/love_app/chat/nacos_listener")
+    public String getNacosConfig(){
+        String dataId = "quickstart.test.config";
+        String group = "test";
+        String answer = loveApp.getNacosConfig(dataId, group);
+        return answer;
+    }
 }

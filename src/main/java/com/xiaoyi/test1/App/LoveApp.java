@@ -7,6 +7,10 @@ import com.alibaba.dashscope.common.MultiModalMessage;
 import com.alibaba.dashscope.common.Role;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
+import com.alibaba.nacos.api.NacosFactory;
+import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.listener.Listener;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.xiaoyi.test1.Adviser.MylogAdvisor;
 import jakarta.annotation.Resource;
 
@@ -19,21 +23,16 @@ import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.image.*;
-import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
-import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
-
-import static java.lang.Thread.sleep;
+import java.util.concurrent.Executor;
 
 
 @Component
@@ -43,12 +42,13 @@ public class LoveApp {
     private final ChatClient chatClient;
     private final ImageModel imageModel;
 
+
     private static final String SYSTEM_PROMPT = "扮演资深程序员";
 
     public LoveApp(ChatModel dashscopeChatModel,  ImageModel dashScopeImageModel) {
         this.imageModel = dashScopeImageModel;
-        // 初始化基于内存的对话记忆
 
+        // 初始化基于内存的对话记忆
 //        String FileDir = System.getProperty("user.dir")+"/chat-memory";
 //        ChatMemory chatMemory = new FileBasedChatMemory(FileDir);
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
@@ -209,6 +209,46 @@ public class LoveApp {
 
     }
 
+    public Boolean setNacosConfig(String dataId, String group, String content){
+        try {
+            // 初始化配置服务，控制台通过示例代码自动获取下面参数
+            String serverAddr = "127.0.0.1:8848";
+            Properties properties = new Properties();
+            properties.put("serverAddr", serverAddr);
+            ConfigService configService = NacosFactory.createConfigService(properties);
+            boolean isPublishOk = configService.publishConfig(dataId, group, content);
+            return isPublishOk;
+        } catch (NacosException e) {
+            log.error(e.getMessage());
+            return false;
+        }
+    }
 
+    public String getNacosConfig(String dataId, String group) {
+        try {
+            String serverAddr = "127.0.0.1:8848";
+            Properties properties = new Properties();
+            properties.put("serverAddr", serverAddr);
+            ConfigService configService = NacosFactory.createConfigService(properties);
+            Listener listener = new Listener() {
+                @Override
+                public Executor getExecutor() {
+                    return null;
+                }
+
+                @Override
+                public void receiveConfigInfo(String configInfo) {
+                    log.info("configInfo: {}", configInfo);
+                }
+            };
+            String content = configService.getConfigAndSignListener(dataId, group, 5000, listener);
+            configService.removeListener(dataId, group, listener);
+            return content;
+        } catch (NacosException e) {
+            log.error(e.getMessage());
+            return "get nacos config error";
+        }
+
+    }
 }
 

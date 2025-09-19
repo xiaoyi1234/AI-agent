@@ -7,6 +7,8 @@ import com.xiaoyi.test1.App.LoveApp;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springdoc.webmvc.ui.SwaggerIndexTransformer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 
@@ -15,6 +17,8 @@ class LoveAppTest {
 
     @Resource
     private LoveApp loveApp;
+    @Autowired
+    private SwaggerIndexTransformer swaggerIndexTransformer;
 
     @Test
     void testChat() {
@@ -90,6 +94,14 @@ class LoveAppTest {
         String message = "生成一张无敌风火轮的图片！";
         String answer;
         answer = loveApp.doImage(message);
+        Assertions.assertNotNull(answer);
+    }
+
+    @Test
+    void getNacosConfig(){
+        String dataId = "quickstart.test.config";
+        String group = "test";
+        String answer = loveApp.getNacosConfig(dataId, group);
         Assertions.assertNotNull(answer);
     }
 
