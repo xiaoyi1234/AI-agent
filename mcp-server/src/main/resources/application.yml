@@ -1,0 +1,29 @@
+server:
+  port: 18888
+
+spring:
+  application:
+    name: mcp-server
+#    profiles:
+#      active: stdio
+  ai:
+    mcp:
+      server:
+        name: mcp-image-search   # MCP服务名称
+        version: 1.0.0            # 服务版本
+        type: SYNC                # 调用类型：SYNC（同步）或ASYNC（异步）
+        sse-message-endpoint: /mcp/messages
+        capabilities:
+          tool: true
+          resource: true
+          prompt: true
+          completion: true
+    alibaba:
+      mcp:
+        nacos:
+          server-addr: 127.0.0.1:8848        # 替换为你的 Nacos 地址
+          namespace: public    # Nacos 命名空间 ID（默认为public）
+          username: nacos          # 开源控制台用户名
+          password: nacos          # 开源控制台密码
+          register:
+            enabled: true   # 是否开启服务注册

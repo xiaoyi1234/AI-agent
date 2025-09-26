@@ -8,9 +8,15 @@ import com.alibaba.dashscope.common.Role;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import com.alibaba.nacos.api.NacosFactory;
+import com.alibaba.nacos.api.PropertyKeyConst;
+import com.alibaba.nacos.api.ai.AiFactory;
+import com.alibaba.nacos.api.ai.AiService;
+import com.alibaba.nacos.api.ai.model.mcp.McpServerDetailInfo;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
+
+import com.alibaba.nacos.common.utils.JacksonUtils;
 import com.xiaoyi.test1.Adviser.MylogAdvisor;
 import jakarta.annotation.Resource;
 
@@ -23,11 +29,13 @@ import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.image.*;
+
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -163,8 +171,9 @@ public class LoveApp {
         return content;
     }
 
-    @Resource
-    private ToolCallbackProvider toolCallbackProvider;
+    @Autowired
+    @Qualifier("loadbalancedMcpSyncToolCallbacks")
+    ToolCallbackProvider toolCallbackProvider;
 
     public String doChatWithMcp(String message, String chatId) {
         ChatResponse response = chatClient
@@ -205,7 +214,7 @@ public class LoveApp {
 
         MultiModalConversationResult result = conv.call(param);
 
-        return result.getOutput().getChoices().getFirst().getMessage().getContent().getFirst().get("image").toString();
+        return result.getOutput().getChoices().get(0).getMessage().getContent().get(0).get("image").toString();
 
     }
 
@@ -229,21 +238,26 @@ public class LoveApp {
             String serverAddr = "127.0.0.1:8848";
             Properties properties = new Properties();
             properties.put("serverAddr", serverAddr);
-            ConfigService configService = NacosFactory.createConfigService(properties);
-            Listener listener = new Listener() {
-                @Override
-                public Executor getExecutor() {
-                    return null;
-                }
+//            ConfigService configService = NacosFactory.createConfigService(properties);
+//            Listener listener = new Listener() {
+//                @Override
+//                public Executor getExecutor() {
+//                    return null;
+//                }
+//
+//                @Override
+//                public void receiveConfigInfo(String configInfo) {
+//                    log.info("configInfo: {}", configInfo);
+//                }
+//            };
+//            String content = configService.getConfigAndSignListener(dataId, group, 5000, listener);
+//            configService.removeListener(dataId, group, listener);
 
-                @Override
-                public void receiveConfigInfo(String configInfo) {
-                    log.info("configInfo: {}", configInfo);
-                }
-            };
-            String content = configService.getConfigAndSignListener(dataId, group, 5000, listener);
-            configService.removeListener(dataId, group, listener);
-            return content;
+            AiService aiService = AiFactory.createAiService(properties);
+            McpServerDetailInfo detailInfo = aiService.getMcpServer("mcp-image-search", null);
+            System.out.println(JacksonUtils.toJson(detailInfo));
+            return detailInfo.toString();
+//            return content;
         } catch (NacosException e) {
             log.error(e.getMessage());
             return "get nacos config error";

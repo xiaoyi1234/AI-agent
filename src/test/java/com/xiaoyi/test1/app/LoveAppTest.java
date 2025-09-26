@@ -80,14 +80,14 @@ class LoveAppTest {
         Assertions.assertNotNull(answer);
     }
 
-//    @Test
-//    void doChatWithMcp() {
-//        String chatId = UUID.randomUUID().toString();
-//        // 测试地图 MCP
-//        String message = "夏天周末做啥午餐？";
-//        String answer =  loveApp.doChatWithMcp(message, chatId);
-//        Assertions.assertNotNull(answer);
-//    }
+    @Test
+    void doChatWithMcp() {
+        String chatId = UUID.randomUUID().toString();
+        // 测试地图 MCP
+        String message = "帮我搜索一些可爱猫猫的图片";
+        String answer =  loveApp.doChatWithMcp(message, chatId);
+        Assertions.assertNotNull(answer);
+    }
 
     @Test
     void doImage() throws InterruptedException, NoApiKeyException, UploadFileException {

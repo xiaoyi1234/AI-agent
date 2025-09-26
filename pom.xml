@@ -46,14 +46,14 @@
         <url/>
     </scm>
     <properties>
-        <java.version>24</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
-            <version>1.0.0.3</version>
+            <version>1.0.0.4</version>
         </dependency>
 
         <dependency>
@@ -68,7 +68,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <version>3.3.4</version>
         </dependency>
-
         <!-- 支持结构化输出 -->
         <dependency>
             <groupId>com.github.victools</groupId>
@@ -136,7 +135,7 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-pgvector-store</artifactId>
-            <version>1.0.1</version>
+            <version>1.1.0-M2</version>
         </dependency>
 
 <!--        网页抓取-->
@@ -161,21 +160,10 @@
             <scope>test</scope>
         </dependency>
 
-        <!--        MCP-->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-client</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dashscope-sdk-java</artifactId>
-            <version>2.20.2</version>
+            <version>2.21.9</version>
         </dependency>
 
         <dependency>
@@ -193,6 +181,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <version>4.0.0-M3</version>
             <scope>test</scope>
         </dependency>
 
@@ -202,26 +191,45 @@
             <artifactId>spring-ai-advisors-vector-store</artifactId>
         </dependency>
 
-<!--&lt;!&ndash;        spring ai nacos&ndash;&gt;-->
-<!--&lt;!&ndash;        <dependency>&ndash;&gt;-->
-<!--&lt;!&ndash;            <groupId>com.alibaba.cloud</groupId>&ndash;&gt;-->
-<!--&lt;!&ndash;            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>&ndash;&gt;-->
-<!--&lt;!&ndash;            <version>2025.0.0.0-preview</version>&ndash;&gt;-->
-<!--&lt;!&ndash;        </dependency>&ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>-->
-<!--            <version>2025.0.0.0-preview</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.cloud.ai</groupId>-->
-<!--            <artifactId>spring-ai-alibaba-starter-nacos-prompt</artifactId>-->
-<!--            <version>1.0.0.3</version>-->
-<!--        </dependency>-->
+<!--  spring ai nacos-->
+
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-client</artifactId>
-            <version>3.0.3</version>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-mcp-registry</artifactId>
+            <version>1.0.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.ai</groupId>-->
+<!--            <artifactId>spring-ai-starter-mcp-client</artifactId>-->
+<!--            <version>1.0.1</version> &lt;!&ndash; 使用与项目兼容的版本 &ndash;&gt;-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-autoconfigure-model-chat-client</artifactId>
+            <version>1.1.0-M2</version>
+        </dependency>
+
+        <!-- Maven -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>9.0.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
     </dependencies>

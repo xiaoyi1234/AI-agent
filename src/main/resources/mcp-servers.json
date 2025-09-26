@@ -1,11 +1,8 @@
 {
   "mcpServers": {
-    "howtocook-mcp": {
-      "command": "npx.cmd",
-      "args": [
-        "-y",
-        "howtocook-mcp"
-      ]
+    "mcp-calendar-holiday-helper": {
+      "url": "https://mcp.higress.ai/mcp-calendar-holiday-helper/cmfzle5o7004r3401rc7rtdrg/sse"
     }
   }
 }
+

@@ -22,21 +22,34 @@ spring:
           width: 512
           n: 1
           style: natural
-    # 开启 nacos 的 prompt tmpl 监听功能
-#    nacos:
-#      prompt:
-#        template:
-#          enabled: true
 
-#  config:
-#    import:
-#      - nacos:nacos-config-example.properties
-#  # 指定监听的 prompt 配置
-#  cloud:
-#    nacos:
-#      config:
-#        server-addr: 127.0.0.1:8080
-#        namespace: xiaoyi-test
+    alibaba:
+      mcp:
+        nacos:
+          namespace: public
+          server-addr: 127.0.0.1:8848
+          username: nacos
+          password: nacos
+          client:
+            enabled: true
+            sse:
+              connections:
+                server1:
+                  service-name: mcp-image-search # Nacos 中对应 MCP Server 的服务名
+                  version: 1.0.0 # Nacos 中对应 MCP Server 的版本号
+
+
+    mcp:
+      client:
+        enabled: true
+        name: mcp-client-webflux
+        version: 0.0.1
+        initialized: true
+        request-timeout: 30s
+        type: sync
+        toolcallback:
+          enabled: true
+        root-change-notification: true
 
 
 
@@ -47,10 +60,6 @@ spring:
 #        index-type: HNSW
 #        distance-type: COSINE_DISTANCE
 #        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
-#    mcp:
-#      client:
-#        stdio:
-#          servers-configuration: classpath:mcp-servers.json
 
 #    mcp:
 #      client:
@@ -102,5 +111,7 @@ knife4j:
 logging:
   level:
     com.xiaoyi.test1.Adviser.MylogAdvisor: info
-    com.alibaba.nacos: debug
+    com.alibaba: debug
+    io.modelcontextprotocol.client: debug
+    io.modelcontextprotocol.spec: debug
 
