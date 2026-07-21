@@ -1,0 +1,70 @@
+# Qwen Catgirl LoRA — default configuration
+# Paths are relative to the project root unless absolute.
+
+model:
+  name: "qwen/Qwen2___5-7B-Instruct" 
+  local_path: "./qwen/Qwen2_5-7B-Instruct" # 基座模型路径
+  trust_remote_code: true
+  use_fast_tokenizer: false
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_compute_dtype: "bfloat16"
+
+lora:
+  r: 16
+  lora_alpha: 32
+  target_modules:
+    - q_proj
+    - v_proj
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+data:
+  file: "../NekoQA-10K.jsonl"
+  test_size: 0.1
+  seed: 42
+  max_length: 512
+  truncation_side: "left"
+
+training:
+  output_dir: "./qwen_qlora_checkpoints"
+  adapter_output_dir: "./my_qlora_adapter"
+  num_train_epochs: 4
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 2
+  learning_rate: 2.0e-4
+  fp16: true
+  gradient_checkpointing: true
+  logging_steps: 10
+  eval_strategy: "steps"
+  eval_steps: 50
+  save_strategy: "steps"
+  save_steps: 50
+  save_total_limit: 5
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  #metric_for_best_model="accuracy",       # 以准确率为评判标准
+  #greater_is_better=True,                 # loss 越大越好
+  report_to: "none"
+
+inference:
+  lora_path: "./my_qlora_adapter"
+  max_new_tokens: 512
+  temperature: 0.7
+  top_p: 0.9
+  do_sample: true
+
+gradio:
+  server_name: "0.0.0.0"
+  server_port: 7860
+  share: false
+  title: "🐱 猫娘 Qwen2.5 LoRA"
+
+plot:
+  trainer_state: "./qwen_qlora_checkpoints/checkpoint-2268/trainer_state.json"
+  output_image: "./loss_curve.png"
